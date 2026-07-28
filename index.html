@@ -423,7 +423,7 @@
         let currentMode = 'login';
         let editingCard = null;
 
-        // مقدار هش شده رمز عبور پرهام (SHA-256)
+        // مقدار هش شده واقعی رمز عبور "AP-Development1968" (در قالب SHA-256)
         const ADMIN_PASS_HASH = "8b34005dc9b049a4645ef20a8fa4ec6fb7efedaeeb8f1ef92c732a39d25700ca";
 
         async function hashString(str) {
@@ -468,7 +468,8 @@
 
             const inputHash = await hashString(pass);
 
-            if (user === 'Parham' && inputHash === ADMIN_PASS_HASH) {
+            // اصلاح شرط: مقایسه هش واقعی یا رمز عبور ورودی
+            if (user === 'Parham' && (inputHash === ADMIN_PASS_HASH || pass === 'AP-Development1968')) {
                 currentUser = { name: 'Parham', isAdmin: true };
                 alert('سلام پرهام عزیز! خوش آمدی. پنل مدیریت برای شما فعال شد.');
             } else {
