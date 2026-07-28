@@ -75,7 +75,7 @@
 
         .emoji-picker-container { display: flex; gap: 10px; align-items: center; }
 
-        /* نوار پیشرفت آبی آسمونی */
+        /* نوار پیشرفت آبی آسمونی سریع‌تر */
         .progress-container {
             width: 100%; background: #0f172a; border-radius: 8px;
             overflow: hidden; margin-bottom: 1.2rem; display: none;
@@ -84,7 +84,7 @@
         .progress-bar {
             width: 0%; height: 22px; background: linear-gradient(90deg, #00bfff, #00ffcc);
             text-align: center; color: #000; font-weight: bold; font-size: 0.85rem;
-            transition: width 0.2s ease; line-height: 22px;
+            transition: width 0.1s ease; line-height: 22px;
         }
 
         .btn-submit {
@@ -305,7 +305,7 @@
 
                 reader.onprogress = (e) => {
                     if (e.lengthComputable) {
-                        let percent = Math.round((e.loaded / e.total) * 50);
+                        let percent = Math.round((e.loaded / e.total) * 30);
                         bar.style.width = percent + '%';
                         bar.innerText = percent + '%';
                     }
@@ -313,8 +313,8 @@
 
                 reader.onload = async function() {
                     const base64Content = reader.result.split(',')[1];
-                    bar.style.width = '60%';
-                    bar.innerText = '60% (در حال ارسال به گیت‌هاب...)';
+                    bar.style.width = '40%';
+                    bar.innerText = '40% (ارسال به گیت‌هاب...)';
 
                     const xhr = new XMLHttpRequest();
                     xhr.open('PUT', `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${fileName}`, true);
@@ -323,7 +323,7 @@
 
                     xhr.upload.onprogress = function(e) {
                         if (e.lengthComputable) {
-                            let percent = 60 + Math.round((e.loaded / e.total) * 40);
+                            let percent = 40 + Math.round((e.loaded / e.total) * 60);
                             bar.style.width = percent + '%';
                             bar.innerText = percent + '%';
                         }
@@ -334,17 +334,17 @@
                             const resData = JSON.parse(xhr.responseText);
                             bar.style.width = '100%';
                             bar.innerText = 'آپلود کامل شد!';
-                            setTimeout(() => { container.style.display = 'none'; }, 1500);
+                            setTimeout(() => { container.style.display = 'none'; }, 1000);
                             resolve(resData.content.download_url);
                         } else {
                             container.style.display = 'none';
-                            reject("خطا در آپلود فایل");
+                            reject("خطا در آپلود فایل به گیت‌هاب");
                         }
                     };
 
                     xhr.onerror = function() {
                         container.style.display = 'none';
-                        reject("خطای شبکه");
+                        reject("خطای شبکه در ارسال فایل");
                     };
 
                     xhr.send(JSON.stringify({
@@ -371,7 +371,7 @@
                 try {
                     fileUrl = await uploadFileWithProgress(fileInput.files[0]);
                 } catch (e) {
-                    return alert('آپلود فایل با خطا مواجه شد.');
+                    return alert('آپلود فایل با خطا مواجه شد. لطفاً مطمئن شوید حجم فایل خیلی زیاد نباشد.');
                 }
             }
 
