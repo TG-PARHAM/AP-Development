@@ -69,6 +69,18 @@
             color: #fff; border-radius: 8px; outline: none;
         }
 
+        /* استایل نوار پیشرفت آبی آسمونی */
+        .progress-container {
+            width: 100%; background: #0f172a; border-radius: 8px;
+            overflow: hidden; margin-bottom: 1.2rem; display: none;
+            border: 1px solid #334155;
+        }
+        .progress-bar {
+            width: 0%; height: 22px; background: linear-gradient(90deg, #00bfff, #00ffcc);
+            text-align: center; color: #000; font-weight: bold; font-size: 0.85rem;
+            transition: width 0.2s ease; line-height: 22px;
+        }
+
         .btn-submit {
             background: var(--accent-color); color: #000; border: none; padding: 0.8rem 1.5rem;
             border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;
@@ -128,8 +140,12 @@
             </div>
 
             <div class="form-group" id="file-group">
-                <label>انتخاب فایل بازی:</label>
-                <input type="file" id="post-file" style="padding: 0.5rem; background: #0f172a;">
+                <label>انتخاب فایل بازی (آپلود مستقیم در گیت‌هاب):</label>
+                <input type="file" id="post-file" style="padding: 0.5rem; background: #0f172a; color: #fff;">
+            </div>
+
+            <div class="progress-container" id="progress-container">
+                <div class="progress-bar" id="progress-bar">0%</div>
             </div>
 
             <button class="btn-submit" id="btn-submit" onclick="savePostToGitHub()">ذخیره و انتشار در گیت‌هاب</button>
@@ -249,30 +265,69 @@
             });
         }
 
-        async function uploadFileToGitHub(file) {
-            let token = localStorage.getItem('gh_token');
-            const fileName = `uploads/${Date.now()}_${file.name}`;
-            const reader = new FileReader();
-
+        // تابع آپلود فایل همراه با نوار پیشرفت زنده (XMLHttpRequest)
+        function uploadFileWithProgress(file) {
             return new Promise((resolve, reject) => {
-                reader.onload = async function() {
-                    const base64Content = reader.result.split(',')[1];
-                    try {
-                        const res = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${fileName}`, {
-                            method: 'PUT',
-                            headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ message: "آپلود فایل جدید", content: base64Content })
-                        });
-                        if (res.ok) {
-                            const data = await res.json();
-                            resolve(data.content.download_url);
-                        } else {
-                            reject("خطا در آپلود فایل");
-                        }
-                    } catch (err) {
-                        reject(err);
+                let token = localStorage.getItem('gh_token');
+                const fileName = `uploads/${Date.now()}_${file.name}`;
+                const reader = new FileReader();
+
+                const container = document.getElementById('progress-container');
+                const bar = document.getElementById('progress-bar');
+                container.style.display = 'block';
+                bar.style.width = '0%';
+                bar.innerText = '0%';
+
+                reader.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        let percent = Math.round((e.loaded / e.total) * 50); // خواندن فایل تا 50 درصد
+                        bar.style.width = percent + '%';
+                        bar.innerText = percent + '%';
                     }
                 };
+
+                reader.onload = async function() {
+                    const base64Content = reader.result.split(',')[1];
+                    bar.style.width = '60%';
+                    bar.innerText = '60% (در حال ارسال به گیت‌هاب...)';
+
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('PUT', `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${fileName}`, true);
+                    xhr.setRequestHeader('Authorization', `token ${token}`);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+
+                    xhr.upload.onprogress = function(e) {
+                        if (e.lengthComputable) {
+                            let percent = 60 + Math.round((e.loaded / e.total) * 40); // ارسال به گیت‌هاب از 60 تا 100 درصد
+                            bar.style.width = percent + '%';
+                            bar.innerText = percent + '%';
+                        }
+                    };
+
+                    xhr.onload = function() {
+                        if (xhr.status === 201 || xhr.status === 200) {
+                            const resData = JSON.parse(xhr.responseText);
+                            bar.style.width = '100%';
+                            bar.innerText = 'آپلود کامل شد!';
+                            setTimeout(() => { container.style.display = 'none'; }, 1500);
+                            resolve(resData.content.download_url);
+                        } else {
+                            container.style.display = 'none';
+                            reject("خطا در آپلود فایل");
+                        }
+                    };
+
+                    xhr.onerror = function() {
+                        container.style.display = 'none';
+                        reject("خطای شبکه");
+                    };
+
+                    xhr.send(JSON.stringify({
+                        message: "آپلود فایل بازی جدید",
+                        content: base64Content
+                    }));
+                };
+
                 reader.readAsDataURL(file);
             });
         }
@@ -287,9 +342,8 @@
 
             let fileUrl = currentFileUrl;
             if (type === 'game' && fileInput.files.length > 0) {
-                alert('در حال آپلود فایل، لطفاً کمی صبر کنید...');
                 try {
-                    fileUrl = await uploadFileToGitHub(fileInput.files[0]);
+                    fileUrl = await uploadFileWithProgress(fileInput.files[0]);
                 } catch (e) {
                     return alert('آپلود فایل با خطا مواجه شد.');
                 }
@@ -306,7 +360,7 @@
                 }
                 editingId = null;
                 currentFileUrl = "";
-                document.getElementById('btn-submit').innerText = 'ذخیره';
+                document.getElementById('btn-submit').innerText = 'ذخیره و انتشار در گیت‌هاب';
             } else {
                 const newItem = { id: 'id-' + Date.now(), title, content };
                 if (type === 'game') newItem.fileUrl = fileUrl;
@@ -314,18 +368,17 @@
             }
 
             renderCards(); 
-            await syncWithGitHub("بروزرسانی محتوا از پنل مدیریت");
+            await syncWithGitHub("تغییر اعمال و ذخیره شد");
         }
 
         async function deletePost(id, type) {
-            // بدون تاییدیه (Alert) مستقیم حذف میشود
             if (type === 'game') {
                 siteData.games = siteData.games.filter(g => g.id !== id);
             } else {
                 siteData.news = siteData.news.filter(n => n.id !== id);
             }
             renderCards();
-            await syncWithGitHub("حذف پست از سایت");
+            await syncWithGitHub("تغییر اعمال و ذخیره شد");
         }
 
         function editPost(id, type) {
