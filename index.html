@@ -57,6 +57,39 @@
         .card h3 { color: var(--accent-color); }
         .card p { text-align: right; }
 
+        .rating-badge {
+            background: rgba(255, 215, 0, 0.1); border: 1px solid #ffd700; color: #ffd700;
+            padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.85rem; font-weight: bold;
+            display: inline-block; margin-bottom: 0.8rem;
+        }
+
+        .comments-section {
+            margin-top: 1.2rem; border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem; text-align: right;
+        }
+
+        .comments-list {
+            max-height: 120px; overflow-y: auto; margin-bottom: 0.8rem; font-size: 0.9rem;
+            background: #0f172a; border-radius: 8px; padding: 0.5rem; border: 1px solid #334155;
+        }
+
+        .comment-item {
+            padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .comment-item:last-child { border-bottom: none; }
+        .comment-text { color: var(--text-muted); }
+        .comment-author { color: var(--accent-color); font-weight: bold; margin-left: 5px; }
+
+        .comment-input-box { display: flex; flex-direction: column; gap: 6px; }
+        .comment-input-box input, .comment-input-box select {
+            padding: 0.4rem; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 0.85rem;
+        }
+        .comment-btn {
+            background: var(--accent-color); color: #000; border: none; padding: 0.4rem;
+            border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem;
+        }
+
         .admin-actions { display: none; gap: 8px; }
         .action-btn { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; transition: transform 0.2s; }
         .action-btn:hover { transform: scale(1.2); }
@@ -143,7 +176,7 @@
 
             <div class="form-group" id="file-group">
                 <label>لینک دانلود مستقیم بازی:</label>
-                <input type="text" id="post-fileurl" placeholder="https://... یا لینک گیت‌هاب/تلگرام">
+                <input type="text" id="post-fileurl" placeholder="https://...">
             </div>
 
             <button class="btn-submit" id="btn-submit" onclick="savePostToGitHub()">ذخیره و انتشار در گیت‌هاب</button>
@@ -236,6 +269,29 @@
 
             siteData.games.forEach(game => {
                 const emoji = game.emoji || '🎮';
+                
+                // محاسبه میانگین امتیاز
+                let avgRating = 0;
+                if (game.ratings && game.ratings.length > 0) {
+                    const sum = game.ratings.reduce((a, b) => a + b, 0);
+                    avgRating = (sum / game.ratings.length).toFixed(1);
+                }
+
+                // رندر نظرات
+                let commentsHtml = '';
+                if (game.comments && game.comments.length > 0) {
+                    game.comments.forEach((c, cIndex) => {
+                        commentsHtml += `
+                            <div class="comment-item">
+                                <span class="comment-text"><strong class="comment-author">${c.author}:</strong> ${c.text}</span>
+                                ${currentUser && currentUser.isAdmin ? `<button class="action-btn" style="font-size:0.8rem;" onclick="deleteComment('${game.id}', ${cIndex})" title="حذف نظر">❌</button>` : ''}
+                            </div>
+                        `;
+                    });
+                } else {
+                    commentsHtml = '<p style="color:var(--text-muted); font-size:0.8rem; text-align:center;">هنوز نظری ثبت نشده است.</p>';
+                }
+
                 gamesList.innerHTML += `
                     <div class="card">
                         <div>
@@ -247,9 +303,30 @@
                                     <button class="action-btn" onclick="deletePost('${game.id}', 'game')" title="حذف">🗑️</button>
                                 </div>
                             </div>
+                            <div class="rating-badge">⭐ امتیاز: ${avgRating > 0 ? avgRating + ' / 5' : 'بدون امتیاز'} (${game.ratings ? game.ratings.length : 0} رای)</div>
                             <p>${game.content}</p>
                         </div>
-                        ${game.fileUrl ? `<a href="${game.fileUrl}" target="_blank" class="btn-auth" style="display:inline-block; margin-top:1rem; text-decoration:none;">📥 دانلود بازی</a>` : ''}
+                        
+                        <div>
+                            ${game.fileUrl ? `<a href="${game.fileUrl}" target="_blank" class="btn-auth" style="display:block; margin-top:1rem; text-decoration:none;">📥 دانلود بازی</a>` : ''}
+                            
+                            <div class="comments-section">
+                                <div class="comments-list">${commentsHtml}</div>
+                                <div class="comment-input-box">
+                                    <div style="display: flex; gap: 5px;">
+                                        <select id="rating-${game.id}" style="width: 45%;">
+                                            <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                                            <option value="4">⭐⭐⭐⭐ (4)</option>
+                                            <option value="3">⭐⭐⭐ (3)</option>
+                                            <option value="2">⭐⭐ (2)</option>
+                                            <option value="1">⭐ (1)</option>
+                                        </select>
+                                        <input type="text" id="comment-text-${game.id}" placeholder="نظر خود را بنویسید..." style="width: 55%;">
+                                    </div>
+                                    <button class="comment-btn" onclick="addCommentAndRating('${game.id}')">ارسال نظر و امتیاز</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 `;
             });
@@ -274,6 +351,37 @@
             });
         }
 
+        async function addCommentAndRating(gameId) {
+            const commentInput = document.getElementById(`comment-text-${gameId}`);
+            const ratingSelect = document.getElementById(`rating-${gameId}`);
+            const text = commentInput.value.trim();
+            const rating = parseInt(ratingSelect.value);
+
+            if (!text) return alert('لطفاً متن نظر را وارد کنید.');
+
+            const game = siteData.games.find(g => g.id === gameId);
+            if (!game) return;
+
+            if (!game.comments) game.comments = [];
+            if (!game.ratings) game.ratings = [];
+
+            const authorName = currentUser ? currentUser.name : 'کاربر مهمان';
+            game.comments.push({ author: authorName, text: text });
+            game.ratings.push(rating);
+
+            renderCards();
+            await syncWithGitHub("ثبت نظر و امتیاز جدید");
+        }
+
+        async function deleteComment(gameId, commentIndex) {
+            const game = siteData.games.find(g => g.id === gameId);
+            if (!game || !game.comments) return;
+
+            game.comments.splice(commentIndex, 1);
+            renderCards();
+            await syncWithGitHub("حذف نظر توسط مدیر");
+        }
+
         async function savePostToGitHub() {
             const type = document.getElementById('post-type').value;
             const emoji = document.getElementById('post-emoji').value.trim() || (type === 'game' ? '🎮' : '📢');
@@ -296,7 +404,7 @@
                 editingId = null;
                 document.getElementById('btn-submit').innerText = 'ذخیره و انتشار در گیت‌هاب';
             } else {
-                const newItem = { id: 'id-' + Date.now(), emoji, title, content };
+                const newItem = { id: 'id-' + Date.now(), emoji, title, content, comments: [], ratings: [] };
                 if (type === 'game') newItem.fileUrl = fileUrl;
                 list.push(newItem);
             }
@@ -312,7 +420,7 @@
                 siteData.news = siteData.news.filter(n => n.id !== id);
             }
             renderCards();
-            await syncWithGitHub("تغییر اعمال و ذخیره شد");
+            await syncWithGitHub("حذف پست از سایت");
         }
 
         function editPost(id, type) {
@@ -368,7 +476,7 @@
                 if (res.ok) {
                     const resData = await res.json();
                     fileSHA = resData.content.sha;
-                    alert('تغییر اعمال و ذخیره شد');
+                    alert('تغییرات با موفقیت در گیت‌هاب ذخیره شد');
                     document.getElementById('post-title').value = '';
                     document.getElementById('post-content').value = '';
                     const fileInput = document.getElementById('post-fileurl');
@@ -394,7 +502,7 @@
             if (user === 'Parham' && (inputHash === ADMIN_PASS_HASH || pass === 'AP-Development1968')) {
                 currentUser = { name: 'Parham', isAdmin: true };
             } else {
-                currentUser = { name: user, isAdmin: false };
+                currentUser = { name: user || 'کاربر مهمان', isAdmin: false };
             }
 
             localStorage.setItem('ap_dev_user', JSON.stringify(currentUser));
