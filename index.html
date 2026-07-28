@@ -48,10 +48,18 @@
         .card {
             background: var(--card-bg); border-radius: 12px; padding: 1.5rem;
             border: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; justify-content: space-between;
+            text-align: center;
+        }
+
+        .card-emoji {
+            font-size: 3.5rem;
+            margin-bottom: 0.8rem;
+            text-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
         }
 
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
         .card h3 { color: var(--accent-color); }
+        .card p { text-align: right; }
 
         .admin-actions { display: none; gap: 8px; }
         .action-btn { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; transition: transform 0.2s; }
@@ -63,22 +71,14 @@
         }
 
         .form-group { margin-bottom: 1.2rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); }
+        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); text-align: right; }
         .form-group input, .form-group textarea, .form-group select {
             width: 100%; padding: 0.8rem; background: #0f172a; border: 1px solid #334155;
-            color: #fff; border-radius: 8px; outline: none;
+            color: #fff; border-radius: 8px; outline: none; text-align: right;
         }
 
-        /* استایل نوار پیشرفت آبی آسمونی */
-        .progress-container {
-            width: 100%; background: #0f172a; border-radius: 8px;
-            overflow: hidden; margin-bottom: 1.2rem; display: none;
-            border: 1px solid #334155;
-        }
-        .progress-bar {
-            width: 0%; height: 22px; background: linear-gradient(90deg, #00bfff, #00ffcc);
-            text-align: center; color: #000; font-weight: bold; font-size: 0.85rem;
-            transition: width 0.2s ease; line-height: 22px;
+        .emoji-picker-container {
+            display: flex; gap: 10px; align-items: center;
         }
 
         .btn-submit {
@@ -98,7 +98,7 @@
         }
 
         .close-btn { position: absolute; top: 15px; left: 15px; color: var(--text-muted); cursor: pointer; font-size: 1.5rem; }
-        .empty-msg { color: var(--text-muted); font-style: italic; }
+        .empty-msg { color: var(--text-muted); font-style: italic; text-align: center; width: 100%; }
     </style>
 </head>
 <body>
@@ -119,14 +119,22 @@
     <div class="container">
 
         <div id="admin-panel">
-            <h2 id="panel-title" style="color: var(--accent-color); margin-bottom: 1.5rem;">⚙️ پنل مدیریت پرهام</h2>
+            <h2 id="panel-title" style="color: var(--accent-color); margin-bottom: 1.5rem; text-align: right;">⚙️ پنل مدیریت پرهام</h2>
             
             <div class="form-group">
                 <label>نوع ارسال:</label>
-                <select id="post-type" onchange="toggleFileInput()">
+                <select id="post-type" onchange="toggleExtraFields()">
                     <option value="game">🎮 آپلود بازی جدید</option>
                     <option value="news">📢 انتشار خبر جدید</option>
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label>انتخاب ایموجی (تصویر بالا):</label>
+                <div class="emoji-picker-container">
+                    <input type="text" id="post-emoji" value="🎮" style="font-size: 1.5rem; text-align: center; width: 80px;" maxlength="2">
+                    <span style="font-size: 0.9rem; color: var(--text-muted);">یک ایموجی انتخاب یا تایپ کنید (مثل 🚀، 🕹️، 💎، ⚡)</span>
+                </div>
             </div>
 
             <div class="form-group">
@@ -140,12 +148,8 @@
             </div>
 
             <div class="form-group" id="file-group">
-                <label>انتخاب فایل بازی:</label>
-                <input type="file" id="post-file" style="padding: 0.5rem; background: #0f172a; color: #fff;">
-            </div>
-
-            <div class="progress-container" id="progress-container">
-                <div class="progress-bar" id="progress-bar">0%</div>
+                <label>لینک دانلود مستقیم بازی:</label>
+                <input type="text" id="post-fileurl" placeholder="https://...">
             </div>
 
             <button class="btn-submit" id="btn-submit" onclick="savePostToGitHub()">ذخیره و انتشار در گیت‌هاب</button>
@@ -162,7 +166,7 @@
     <div class="modal" id="auth-modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h3 style="margin-bottom: 1rem; color: var(--accent-color);">ورود به حساب</h3>
+            <h3 style="margin-bottom: 1rem; color: var(--accent-color); text-align: right;">ورود به حساب</h3>
             <div class="form-group">
                 <label>نام کاربری:</label>
                 <input type="text" id="username" placeholder="Username">
@@ -183,7 +187,6 @@
         let siteData = { games: [], news: [] };
         let fileSHA = "";
         let editingId = null;
-        let currentFileUrl = "";
 
         const ADMIN_PASS_HASH = "8b34005dc9b049a4645ef20a8fa4ec6fb7efedaeeb8f1ef92c732a39d25700ca";
 
@@ -201,10 +204,13 @@
             fetchGitHubData();
         });
 
-        function toggleFileInput() {
+        function toggleExtraFields() {
             const type = document.getElementById('post-type').value;
             const fileGroup = document.getElementById('file-group');
+            const emojiInput = document.getElementById('post-emoji');
+            
             fileGroup.style.display = type === 'game' ? 'block' : 'none';
+            emojiInput.value = type === 'game' ? '🎮' : '📢';
         }
 
         async function fetchGitHubData() {
@@ -230,29 +236,33 @@
             newsList.innerHTML = siteData.news.length === 0 ? '<p class="empty-msg">هنوز خبری ثبت نشده است.</p>' : '';
 
             siteData.games.forEach(game => {
+                const emoji = game.emoji || '🎮';
                 gamesList.innerHTML += `
                     <div class="card">
                         <div>
+                            <div class="card-emoji">${emoji}</div>
                             <div class="card-header">
-                                <h3>🎮 ${game.title}</h3>
+                                <h3>${game.title}</h3>
                                 <div class="admin-actions" style="display: ${currentUser && currentUser.isAdmin ? 'flex' : 'none'};">
                                     <button class="action-btn" onclick="editPost('${game.id}', 'game')" title="ویرایش">✏️</button>
                                     <button class="action-btn" onclick="deletePost('${game.id}', 'game')" title="حذف">🗑️</button>
                                 </div>
                             </div>
                             <p>${game.content}</p>
-                            ${game.fileUrl ? `<br><a href="${game.fileUrl}" target="_blank" class="btn-auth" style="display:inline-block; margin-top:0.5rem; text-decoration:none;">📥 دانلود بازی</a>` : ''}
                         </div>
+                        ${game.fileUrl ? `<a href="${game.fileUrl}" target="_blank" class="btn-auth" style="display:inline-block; margin-top:1rem; text-decoration:none;">📥 دانلود بازی</a>` : ''}
                     </div>
                 `;
             });
 
             siteData.news.forEach(news => {
+                const emoji = news.emoji || '📢';
                 newsList.innerHTML += `
                     <div class="card">
                         <div>
+                            <div class="card-emoji">${emoji}</div>
                             <div class="card-header">
-                                <h3>📢 ${news.title}</h3>
+                                <h3>${news.title}</h3>
                                 <div class="admin-actions" style="display: ${currentUser && currentUser.isAdmin ? 'flex' : 'none'};">
                                     <button class="action-btn" onclick="editPost('${news.id}', 'news')" title="ویرایش">✏️</button>
                                     <button class="action-btn" onclick="deletePost('${news.id}', 'news')" title="حذف">🗑️</button>
@@ -265,104 +275,29 @@
             });
         }
 
-        // تابع آپلود فایل همراه با نوار پیشرفت زنده (XMLHttpRequest)
-        function uploadFileWithProgress(file) {
-            return new Promise((resolve, reject) => {
-                let token = localStorage.getItem('gh_token');
-                const fileName = `uploads/${Date.now()}_${file.name}`;
-                const reader = new FileReader();
-
-                const container = document.getElementById('progress-container');
-                const bar = document.getElementById('progress-bar');
-                container.style.display = 'block';
-                bar.style.width = '0%';
-                bar.innerText = '0%';
-
-                reader.onprogress = (e) => {
-                    if (e.lengthComputable) {
-                        let percent = Math.round((e.loaded / e.total) * 50); // خواندن فایل تا 50 درصد
-                        bar.style.width = percent + '%';
-                        bar.innerText = percent + '%';
-                    }
-                };
-
-                reader.onload = async function() {
-                    const base64Content = reader.result.split(',')[1];
-                    bar.style.width = '60%';
-                    bar.innerText = '60% (در حال ارسال به گیت‌هاب...)';
-
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('PUT', `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${fileName}`, true);
-                    xhr.setRequestHeader('Authorization', `token ${token}`);
-                    xhr.setRequestHeader('Content-Type', 'application/json');
-
-                    xhr.upload.onprogress = function(e) {
-                        if (e.lengthComputable) {
-                            let percent = 60 + Math.round((e.loaded / e.total) * 40); // ارسال به گیت‌هاب از 60 تا 100 درصد
-                            bar.style.width = percent + '%';
-                            bar.innerText = percent + '%';
-                        }
-                    };
-
-                    xhr.onload = function() {
-                        if (xhr.status === 201 || xhr.status === 200) {
-                            const resData = JSON.parse(xhr.responseText);
-                            bar.style.width = '100%';
-                            bar.innerText = 'آپلود کامل شد!';
-                            setTimeout(() => { container.style.display = 'none'; }, 1500);
-                            resolve(resData.content.download_url);
-                        } else {
-                            container.style.display = 'none';
-                            reject("خطا در آپلود فایل");
-                        }
-                    };
-
-                    xhr.onerror = function() {
-                        container.style.display = 'none';
-                        reject("خطای شبکه");
-                    };
-
-                    xhr.send(JSON.stringify({
-                        message: "آپلود فایل بازی جدید",
-                        content: base64Content
-                    }));
-                };
-
-                reader.readAsDataURL(file);
-            });
-        }
-
         async function savePostToGitHub() {
             const type = document.getElementById('post-type').value;
+            const emoji = document.getElementById('post-emoji').value.trim() || (type === 'game' ? '🎮' : '📢');
             const title = document.getElementById('post-title').value.trim();
             const content = document.getElementById('post-content').value.trim();
-            const fileInput = document.getElementById('post-file');
+            const fileUrl = document.getElementById('post-fileurl').value.trim();
 
             if (!title || !content) return alert('لطفاً عنوان و توضیحات را وارد کنید.');
-
-            let fileUrl = currentFileUrl;
-            if (type === 'game' && fileInput.files.length > 0) {
-                try {
-                    fileUrl = await uploadFileWithProgress(fileInput.files[0]);
-                } catch (e) {
-                    return alert('آپلود فایل با خطا مواجه شد.');
-                }
-            }
 
             const list = type === 'game' ? siteData.games : siteData.news;
 
             if (editingId) {
                 const item = list.find(i => i.id === editingId);
                 if (item) {
+                    item.emoji = emoji;
                     item.title = title;
                     item.content = content;
                     if (type === 'game') item.fileUrl = fileUrl;
                 }
                 editingId = null;
-                currentFileUrl = "";
                 document.getElementById('btn-submit').innerText = 'ذخیره و انتشار در گیت‌هاب';
             } else {
-                const newItem = { id: 'id-' + Date.now(), title, content };
+                const newItem = { id: 'id-' + Date.now(), emoji, title, content };
                 if (type === 'game') newItem.fileUrl = fileUrl;
                 list.push(newItem);
             }
@@ -388,11 +323,14 @@
 
             editingId = id;
             document.getElementById('post-type').value = type;
-            toggleFileInput();
+            toggleExtraFields();
+            document.getElementById('post-emoji').value = item.emoji || '🎮';
             document.getElementById('post-title').value = item.title;
             document.getElementById('post-content').value = item.content;
-            currentFileUrl = item.fileUrl || '';
-            document.getElementById('btn-submit').innerText = 'ذخیره تغییرات';
+            if (type === 'game') {
+                document.getElementById('post-fileurl').value = item.fileUrl || '';
+            }
+            document.getElementById('btn-submit').innerText = 'ذخیره تغییرات در گیت‌هاب';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -426,7 +364,8 @@
                     alert('تغییر اعمال و ذخیره شد');
                     document.getElementById('post-title').value = '';
                     document.getElementById('post-content').value = '';
-                    document.getElementById('post-file').value = '';
+                    const fileInput = document.getElementById('post-fileurl');
+                    if(fileInput) fileInput.value = '';
                 } else {
                     alert('خطا در همگام‌سازی با گیت‌هاب.');
                     localStorage.removeItem('gh_token');
