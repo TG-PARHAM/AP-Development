@@ -1,12 +1,4 @@
 {
-  "games": [
-    {
-      "id": "id-1785259422582",
-      "emoji": "🎮",
-      "title": "تست",
-      "content": "تست",
-      "fileUrl": ""
-    }
-  ],
+  "games": [],
   "news": []
 }
