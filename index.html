@@ -160,12 +160,8 @@
     </div>
 
     <script>
-        // ===================================================
-        // ⚙️ تنظیمات اصلی گیت‌هاب
-        // ===================================================
         const GITHUB_USERNAME = "TG-PARHAM"; 
         const REPO_NAME = "AP-Development";
-        // ===================================================
 
         let currentUser = null;
         let siteData = { games: [], news: [] };
@@ -188,11 +184,16 @@
             fetchGitHubData();
         });
 
+        // دریافت مستقیم و بدون کش داده‌ها
         async function fetchGitHubData() {
             try {
-                const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_USERNAME}/${REPO_NAME}/main/data.json?t=${Date.now()}`);
+                // استفاده از API مستقیم به جای CDN جهت دریافت آخرین تغییرات بدون تاخیر
+                const res = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/data.json?timestamp=${Date.now()}`);
                 if (res.ok) {
-                    siteData = await res.json();
+                    const data = await res.json();
+                    fileSHA = data.sha;
+                    const decoded = decodeURIComponent(escape(atob(data.content)));
+                    siteData = JSON.parse(decoded);
                     renderCards();
                 }
             } catch (err) {
@@ -268,6 +269,8 @@
                 list.push(newItem);
             }
 
+            // ابتدا به صورت محلی نمایش داده می‌شود، سپس روی گیت‌هاب سینک می‌شود
+            renderCards(); 
             await syncWithGitHub("بروزرسانی محتوا از پنل مدیریت");
         }
 
@@ -278,6 +281,7 @@
             } else {
                 siteData.news = siteData.news.filter(n => n.id !== id);
             }
+            renderCards();
             await syncWithGitHub("حذف پست از سایت");
         }
 
@@ -304,14 +308,6 @@
             }
 
             try {
-                const getFile = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/data.json`, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
-                if (getFile.ok) {
-                    const fileData = await getFile.json();
-                    fileSHA = fileData.sha;
-                }
-
                 const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(siteData, null, 2))));
 
                 const res = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/data.json`, {
@@ -328,13 +324,14 @@
                 });
 
                 if (res.ok) {
-                    alert('تغییرات با موفقیت روی گیت‌هاب ذخیره شد!');
+                    const resData = await res.json();
+                    fileSHA = resData.content.sha; // آپدیت سریع SHA جدید
+                    alert('تغییرات فوراً اعمال و ذخیره شد!');
                     document.getElementById('post-title').value = '';
                     document.getElementById('post-content').value = '';
                     document.getElementById('post-fileurl').value = '';
-                    fetchGitHubData();
                 } else {
-                    alert('خطا! مطمئن شوید توکن شما تیک repo داشته باشد.');
+                    alert('خطا در همگام‌سازی با گیت‌هاب.');
                     localStorage.removeItem('gh_token');
                 }
             } catch (err) {
