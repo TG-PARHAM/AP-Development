@@ -111,7 +111,7 @@
             
             <div class="form-group">
                 <label>نوع ارسال:</label>
-                <select id="post-type">
+                <select id="post-type" onchange="toggleFileInput()">
                     <option value="game">🎮 آپلود بازی جدید</option>
                     <option value="news">📢 انتشار خبر جدید</option>
                 </select>
@@ -127,9 +127,9 @@
                 <textarea id="post-content" rows="3" placeholder="توضیحات کامل را بنویسید..."></textarea>
             </div>
 
-            <div class="form-group">
-                <label>لینک مستقیم فایل/دانلود (اختیاری):</label>
-                <input type="text" id="post-fileurl" placeholder="https://...">
+            <div class="form-group" id="file-group">
+                <label>انتخاب فایل بازی (آپلود مستقیم در گیت‌هاب):</label>
+                <input type="file" id="post-file" style="padding: 0.5rem; background: #0f172a;">
             </div>
 
             <button class="btn-submit" id="btn-submit" onclick="savePostToGitHub()">ذخیره و انتشار در گیت‌هاب</button>
@@ -167,6 +167,7 @@
         let siteData = { games: [], news: [] };
         let fileSHA = "";
         let editingId = null;
+        let currentFileUrl = "";
 
         const ADMIN_PASS_HASH = "8b34005dc9b049a4645ef20a8fa4ec6fb7efedaeeb8f1ef92c732a39d25700ca";
 
@@ -184,10 +185,14 @@
             fetchGitHubData();
         });
 
-        // دریافت مستقیم و بدون کش داده‌ها
+        function toggleFileInput() {
+            const type = document.getElementById('post-type').value;
+            const fileGroup = document.getElementById('file-group');
+            fileGroup.style.display = type === 'game' ? 'block' : 'none';
+        }
+
         async function fetchGitHubData() {
             try {
-                // استفاده از API مستقیم به جای CDN جهت دریافت آخرین تغییرات بدون تاخیر
                 const res = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/data.json?timestamp=${Date.now()}`);
                 if (res.ok) {
                     const data = await res.json();
@@ -244,13 +249,51 @@
             });
         }
 
+        async function uploadFileToGitHub(file) {
+            let token = localStorage.getItem('gh_token');
+            const fileName = `uploads/${Date.now()}_${file.name}`;
+            const reader = new FileReader();
+
+            return new Promise((resolve, reject) => {
+                reader.onload = async function() {
+                    const base64Content = reader.result.split(',')[1];
+                    try {
+                        const res = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${fileName}`, {
+                            method: 'PUT',
+                            headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message: "آپلود فایل جدید", content: base64Content })
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            resolve(data.content.download_url);
+                        } else {
+                            reject("خطا در آپلود فایل");
+                        }
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
         async function savePostToGitHub() {
             const type = document.getElementById('post-type').value;
             const title = document.getElementById('post-title').value.trim();
             const content = document.getElementById('post-content').value.trim();
-            const fileUrl = document.getElementById('post-fileurl').value.trim();
+            const fileInput = document.getElementById('post-file');
 
             if (!title || !content) return alert('لطفاً عنوان و توضیحات را وارد کنید.');
+
+            let fileUrl = currentFileUrl;
+            if (type === 'game' && fileInput.files.length > 0) {
+                alert('در حال آپلود فایل، لطفاً کمی صبر کنید...');
+                try {
+                    fileUrl = await uploadFileToGitHub(fileInput.files[0]);
+                } catch (e) {
+                    return alert('آپلود فایل با خطا مواجه شد.');
+                }
+            }
 
             const list = type === 'game' ? siteData.games : siteData.news;
 
@@ -262,6 +305,7 @@
                     if (type === 'game') item.fileUrl = fileUrl;
                 }
                 editingId = null;
+                currentFileUrl = "";
                 document.getElementById('btn-submit').innerText = 'ذخیره و انتشار در گیت‌هاب';
             } else {
                 const newItem = { id: 'id-' + Date.now(), title, content };
@@ -269,13 +313,12 @@
                 list.push(newItem);
             }
 
-            // ابتدا به صورت محلی نمایش داده می‌شود، سپس روی گیت‌هاب سینک می‌شود
             renderCards(); 
             await syncWithGitHub("بروزرسانی محتوا از پنل مدیریت");
         }
 
         async function deletePost(id, type) {
-            if (!confirm('آیا از حذف این پست مطمئن هستید؟')) return;
+            // بدون تاییدیه (Alert) مستقیم حذف میشود
             if (type === 'game') {
                 siteData.games = siteData.games.filter(g => g.id !== id);
             } else {
@@ -292,9 +335,10 @@
 
             editingId = id;
             document.getElementById('post-type').value = type;
+            toggleFileInput();
             document.getElementById('post-title').value = item.title;
             document.getElementById('post-content').value = item.content;
-            document.getElementById('post-fileurl').value = item.fileUrl || '';
+            currentFileUrl = item.fileUrl || '';
             document.getElementById('btn-submit').innerText = 'ذخیره تغییرات در گیت‌هاب';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -325,11 +369,11 @@
 
                 if (res.ok) {
                     const resData = await res.json();
-                    fileSHA = resData.content.sha; // آپدیت سریع SHA جدید
-                    alert('تغییرات فوراً اعمال و ذخیره شد!');
+                    fileSHA = resData.content.sha;
+                    alert('تغییر اعمال و ذخیره شد');
                     document.getElementById('post-title').value = '';
                     document.getElementById('post-content').value = '';
-                    document.getElementById('post-fileurl').value = '';
+                    document.getElementById('post-file').value = '';
                 } else {
                     alert('خطا در همگام‌سازی با گیت‌هاب.');
                     localStorage.removeItem('gh_token');
