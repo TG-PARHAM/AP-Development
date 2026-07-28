@@ -160,16 +160,16 @@
     </div>
 
     <script>
-        // ==========================================
-        // نام کاربری و اسم ریپازیتوری خودت در گیت‌هاب:
-        // ==========================================
+        // ===================================================
+        // ⚙️ تنظیمات اصلی گیت‌هاب
+        // ===================================================
         const GITHUB_USERNAME = "TG-PARHAM"; 
-        const REPO_NAME = "AP Development"; // <-- اسم دقیق ریپازیتوری‌ات را اینجا بنویس
-        // ==========================================
+        const REPO_NAME = "AP-Development";
+        // ===================================================
 
         let currentUser = null;
         let siteData = { games: [], news: [] };
-        let fileSHA = "AP-Development";
+        let fileSHA = "";
         let editingId = null;
 
         const ADMIN_PASS_HASH = "8b34005dc9b049a4645ef20a8fa4ec6fb7efedaeeb8f1ef92c732a39d25700ca";
@@ -188,22 +188,18 @@
             fetchGitHubData();
         });
 
-        // دریافت داده‌های آنلاین از فایل data.json
         async function fetchGitHubData() {
             try {
                 const res = await fetch(`https://raw.githubusercontent.com/${GITHUB_USERNAME}/${REPO_NAME}/main/data.json?t=${Date.now()}`);
                 if (res.ok) {
                     siteData = await res.json();
                     renderCards();
-                } else {
-                    console.log("فایل data.json پیدا نشد یا خالی است.");
                 }
             } catch (err) {
                 console.error("خطا در دریافت داده‌ها:", err);
             }
         }
 
-        // نمایش کارت‌ها در صفحه
         function renderCards() {
             const gamesList = document.getElementById('games-list');
             const newsList = document.getElementById('news-list');
@@ -247,7 +243,6 @@
             });
         }
 
-        // ثبت یا ویرایش پست
         async function savePostToGitHub() {
             const type = document.getElementById('post-type').value;
             const title = document.getElementById('post-title').value.trim();
@@ -276,7 +271,6 @@
             await syncWithGitHub("بروزرسانی محتوا از پنل مدیریت");
         }
 
-        // حذف پست
         async function deletePost(id, type) {
             if (!confirm('آیا از حذف این پست مطمئن هستید؟')) return;
             if (type === 'game') {
@@ -287,7 +281,6 @@
             await syncWithGitHub("حذف پست از سایت");
         }
 
-        // ویرایش پست
         function editPost(id, type) {
             const list = type === 'game' ? siteData.games : siteData.news;
             const item = list.find(i => i.id === id);
@@ -302,7 +295,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // همگام‌سازی و ذخیره مستقیم در گیت‌هاب
         async function syncWithGitHub(commitMessage) {
             let token = localStorage.getItem('gh_token');
             if (!token) {
@@ -312,7 +304,6 @@
             }
 
             try {
-                // دریافت SHA جدیدترین نسخه فایل
                 const getFile = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/data.json`, {
                     headers: { 'Authorization': `token ${token}` }
                 });
@@ -337,17 +328,18 @@
                 });
 
                 if (res.ok) {
-                    alert('تغییرات با موفقیت روی گیت‌هاب ذخیره شد و برای همه همگام گردید!');
+                    alert('تغییرات با موفقیت روی گیت‌هاب ذخیره شد!');
                     document.getElementById('post-title').value = '';
                     document.getElementById('post-content').value = '';
                     document.getElementById('post-fileurl').value = '';
                     fetchGitHubData();
                 } else {
-                    alert('خطا در ذخیره‌سازی! توکن یا دسترسی‌های گیت‌هاب را بررسی کنید.');
+                    alert('خطا! مطمئن شوید توکن شما تیک repo داشته باشد.');
+                    localStorage.removeItem('gh_token');
                 }
             } catch (err) {
                 console.error(err);
-                alert('ارتباط با سرور گیت‌هاب برقرار نشد.');
+                alert('ارتباط با گیت‌هاب برقرار نشد.');
             }
         }
 
