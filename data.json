@@ -1,5 +1,13 @@
 {
-  "games": [],
+  "games": [
+    {
+      "id": "game-1",
+      "title": "jsj",
+      "content": "jsj",
+      "fileUrl": "",
+      "fileName": "Game.zip"
+    }
+  ],
   "news": [
     {
       "id": "news-1",
