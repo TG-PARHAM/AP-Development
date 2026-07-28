@@ -1,18 +1,1 @@
-{
-  "games": [
-    {
-      "id": "game-1",
-      "title": "jsj",
-      "content": "jsj",
-      "fileUrl": "",
-      "fileName": "Game.zip"
-    }
-  ],
-  "news": [
-    {
-      "id": "news-1",
-      "title": "اولین خبر استودیو",
-      "content": "به وب‌سایت رسمی استودیو بازی‌سازی ما خوش آمدید!"
-    }
-  ]
-}
+
