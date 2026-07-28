@@ -423,7 +423,6 @@
         let currentMode = 'login';
         let editingCard = null;
 
-        // مقدار هش شده واقعی رمز عبور "AP-Development1968" (در قالب SHA-256)
         const ADMIN_PASS_HASH = "8b34005dc9b049a4645ef20a8fa4ec6fb7efedaeeb8f1ef92c732a39d25700ca";
 
         async function hashString(str) {
@@ -440,7 +439,86 @@
                 currentUser = JSON.parse(savedUser);
             }
             updateUI();
+            loadDataFromJSON();
         });
+
+        // دریافت مستقیم داده‌ها از فایل data.json
+        async function loadDataFromJSON() {
+            try {
+                const response = await fetch('data.json');
+                if (!response.ok) return;
+                const data = await response.json();
+
+                const gamesList = document.getElementById('games-list');
+                const newsList = document.getElementById('news-list');
+
+                if (data.games && data.games.length > 0) {
+                    gamesList.innerHTML = '';
+                    data.games.forEach(game => {
+                        const cardId = game.id || 'card-' + Date.now();
+                        const fileBtn = game.fileUrl && game.fileUrl !== '#' 
+                            ? `<br><a href="${game.fileUrl}" download="${game.fileName || 'Game'}" class="btn-auth" style="display:inline-block; text-decoration:none; margin-top: 0.5rem;">📥 دانلود ${game.fileName || 'بازی'}</a>` 
+                            : '';
+
+                        gamesList.innerHTML += `
+                            <div class="card" id="${cardId}" data-type="game" data-ratings="[]">
+                                <div>
+                                    <div class="card-header">
+                                        <h3>🎮 ${game.title}</h3>
+                                        <div class="admin-actions" style="display: ${currentUser && currentUser.isAdmin ? 'flex' : 'none'};">
+                                            <button class="action-btn" onclick="editPost(this)" title="ویرایش">✏️</button>
+                                            <button class="action-btn" onclick="deletePost(this)" title="حذف">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <p class="card-desc" style="margin-top: 0.5rem;">${game.content}</p>
+                                    ${fileBtn}
+                                    <div class="rating-display" id="rating-${cardId}">امتیاز: 🌟 ۰/۵ (۰ نظر)</div>
+                                </div>
+                                <div class="comments-section">
+                                    <div class="comments-title">💬 نظرات و امتیاز کاربران</div>
+                                    <div class="comments-list" id="comments-${cardId}"></div>
+                                    <div class="comment-form">
+                                        <div class="star-rating" id="stars-${cardId}">
+                                            <span onclick="setRating('${cardId}', 1)">★</span>
+                                            <span onclick="setRating('${cardId}', 2)">★</span>
+                                            <span onclick="setRating('${cardId}', 3)">★</span>
+                                            <span onclick="setRating('${cardId}', 4)">★</span>
+                                            <span onclick="setRating('${cardId}', 5)">★</span>
+                                        </div>
+                                        <input type="text" id="author-${cardId}" placeholder="نام شما...">
+                                        <textarea id="text-${cardId}" rows="2" placeholder="نظر خود را بنویسید..."></textarea>
+                                        <button class="btn-comment" onclick="addComment('${cardId}')">ثبت نظر و امتیاز</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                if (data.news && data.news.length > 0) {
+                    newsList.innerHTML = '';
+                    data.news.forEach(newsItem => {
+                        const cardId = newsItem.id || 'card-' + Date.now();
+                        newsList.innerHTML += `
+                            <div class="card" id="${cardId}" data-type="news">
+                                <div>
+                                    <div class="card-header">
+                                        <h3>📢 ${newsItem.title}</h3>
+                                        <div class="admin-actions" style="display: ${currentUser && currentUser.isAdmin ? 'flex' : 'none'};">
+                                            <button class="action-btn" onclick="editPost(this)" title="ویرایش">✏️</button>
+                                            <button class="action-btn" onclick="deletePost(this)" title="حذف">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <p class="card-desc" style="margin-top: 0.5rem;">${newsItem.content}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.log("دریافت دیتای اولیه انجام نشد:", error);
+            }
+        }
 
         function openModal() {
             document.getElementById('auth-modal').style.display = 'flex';
@@ -468,7 +546,6 @@
 
             const inputHash = await hashString(pass);
 
-            // اصلاح شرط: مقایسه هش واقعی یا رمز عبور ورودی
             if (user === 'Parham' && (inputHash === ADMIN_PASS_HASH || pass === 'AP-Development1968')) {
                 currentUser = { name: 'Parham', isAdmin: true };
                 alert('سلام پرهام عزیز! خوش آمدی. پنل مدیریت برای شما فعال شد.');
@@ -656,7 +733,7 @@
             `;
 
             const card = document.getElementById(cardId);
-            let ratings = JSON.parse(card.getAttribute('data-ratings'));
+            let ratings = JSON.parse(card.getAttribute('data-ratings') || "[]");
             ratings.push(rating);
             card.setAttribute('data-ratings', JSON.stringify(ratings));
 
