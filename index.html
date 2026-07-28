@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استودیو توسعه بازی | AP-Development</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151c2c;
+            --accent-color: #00ffcc;
+            --accent-glow: rgba(0, 255, 204, 0.4);
+            --text-color: #e2e8f0;
+            --text-muted: #94a3b8;
+            --star-color: #ffd700;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+
+        header {
+            background: rgba(21, 28, 44, 0.8);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1.2rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .user-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-auth {
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 0.5rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-auth:hover {
+            background: var(--accent-color);
+            color: #000;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .hero {
+            padding: 4rem 5% 2rem;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 5%;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            color: #fff;
+            border-right: 4px solid var(--accent-color);
+            padding-right: 10px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .card h3 {
+            color: var(--accent-color);
+        }
+
+        .admin-actions {
+            display: none;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .rating-display {
+            color: var(--star-color);
+            font-size: 0.95rem;
+            margin: 0.5rem 0;
+        }
+
+        .comments-section {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comments-title {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 0.8rem;
+        }
+
+        .comments-list {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .comment-item {
+            background: #0f172a;
+            padding: 0.6rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .comment-user {
+            font-weight: bold;
+            color: var(--accent-color);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .star-rating {
+            direction: ltr;
+            display: inline-flex;
+            gap: 5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .star-rating span {
+            font-size: 1.2rem;
+            color: #475569;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .star-rating span.active,
+        .star-rating span:hover,
+        .star-rating span:hover ~ span {
+            color: var(--star-color);
+        }
+
+        .comment-form input, .comment-form textarea {
+            width: 100%;
+            padding: 0.5rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            outline: none;
+        }
+
+        .btn-comment {
+            background: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+
+        #admin-panel {
+            display: none;
+            background: rgba(0, 255, 204, 0.05);
+            border: 1px solid var(--accent-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #fff;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .btn-submit {
+            background: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid var(--accent-color);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #334155;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 0.8rem;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .tab.active {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+            font-weight: bold;
+        }
+
+        .empty-msg {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">🎮 AP-DEV</div>
+        <div class="user-nav">
+            <span id="user-display" style="display: none; color: var(--accent-color); font-weight: bold;"></span>
+            <button class="btn-auth" id="auth-btn" onclick="openModal()">ورود / ثبت‌نام</button>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h1>پرتال رسمی استودیو بازی‌سازی</h1>
+        <p>به مرکز انتشار بازی‌ها و آخرین اخبار پروژه‌های ما خوش آمدید.</p>
+    </section>
+
+    <div class="container">
+
+        <div id="admin-panel">
+            <h2 id="panel-title" style="color: var(--accent-color); margin-bottom: 1.5rem;">⚙️ پنل مدیریت پرهام</h2>
+            
+            <div class="form-group">
+                <label>نوع ارسال:</label>
+                <select id="post-type" onchange="toggleFormType()">
+                    <option value="game">🎮 آپلود بازی جدید</option>
+                    <option value="news">📢 انتشار خبر جدید</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label id="title-label">عنوان بازی:</label>
+                <input type="text" id="post-title" placeholder="عنوان را وارد کنید...">
+            </div>
+
+            <div class="form-group">
+                <label>توضیحات:</label>
+                <textarea id="post-content" rows="3" placeholder="توضیحات کامل را بنویسید..."></textarea>
+            </div>
+
+            <div class="form-group" id="file-upload-group">
+                <label>انتخاب فایل بازی (ZIP / EXE / APK):</label>
+                <input type="file" id="game-file">
+            </div>
+
+            <button class="btn-submit" id="btn-submit" onclick="submitPost()">انتشار در سایت</button>
+        </div>
+
+        <h2 class="section-title">بازی‌های منتشر شده</h2>
+        <div class="grid-container" id="games-list">
+            <p class="empty-msg">هنوز بازی جدیدی آپلود نشده است.</p>
+        </div>
+
+        <h2 class="section-title">آخرین اخبار</h2>
+        <div class="grid-container" id="news-list">
+            <p class="empty-msg">هنوز خبری منتشر نشده است.</p>
+        </div>
+
+    </div>
+
+    <div class="modal" id="auth-modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            
+            <div class="tabs">
+                <div class="tab active" id="login-tab" onclick="switchTab('login')">ورود</div>
+                <div class="tab" id="reg-tab" onclick="switchTab('register')">ثبت‌نام</div>
+            </div>
+
+            <div id="auth-form">
+                <div class="form-group">
+                    <label>نام کاربری:</label>
+                    <input type="text" id="username" placeholder="Username">
+                </div>
+                <div class="form-group">
+                    <label>رمز عبور:</label>
+                    <input type="password" id="password" placeholder="Password">
+                </div>
+                <button class="btn-submit" id="auth-submit-btn" onclick="handleAuth()">ورود به حساب</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // غیرفعال کردن کلیک راست
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // غیرفعال کردن کلیدهای F12، Ctrl+U، Ctrl+Shift+I
+        document.onkeydown = function (e) {
+            if (e.keyCode == 123 || 
+               (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || 
+               (e.ctrlKey && e.keyCode == 85)) {
+                return false;
+            }
+        };
+
+        let currentUser = null;
+        let currentMode = 'login';
+        let editingCard = null;
+
+        // مقدار هش شده رمز عبور پرهام (SHA-256)
+        const ADMIN_PASS_HASH = "8b34005dc9b049a4645ef20a8fa4ec6fb7efedaeeb8f1ef92c732a39d25700ca";
+
+        async function hashString(str) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUser = localStorage.getItem('ap_dev_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+            }
+            updateUI();
+        });
+
+        function openModal() {
+            document.getElementById('auth-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+        }
+
+        function switchTab(mode) {
+            currentMode = mode;
+            document.getElementById('login-tab').classList.toggle('active', mode === 'login');
+            document.getElementById('reg-tab').classList.toggle('active', mode === 'register');
+            document.getElementById('auth-submit-btn').innerText = mode === 'login' ? 'ورود به حساب' : 'ثبت‌نام کاربر جدید';
+        }
+
+        async function handleAuth() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+
+            if (!user || !pass) {
+                alert('لطفاً نام کاربری و رمز عبور را وارد کنید.');
+                return;
+            }
+
+            const inputHash = await hashString(pass);
+
+            if (user === 'Parham' && inputHash === ADMIN_PASS_HASH) {
+                currentUser = { name: 'Parham', isAdmin: true };
+                alert('سلام پرهام عزیز! خوش آمدی. پنل مدیریت برای شما فعال شد.');
+            } else {
+                currentUser = { name: user, isAdmin: false };
+                alert(`خوش آمدید ${user}!`);
+            }
+
+            localStorage.setItem('ap_dev_user', JSON.stringify(currentUser));
+            updateUI();
+            closeModal();
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('ap_dev_user');
+            updateUI();
+        }
+
+        function updateUI() {
+            const userDisplay = document.getElementById('user-display');
+            const authBtn = document.getElementById('auth-btn');
+            const adminPanel = document.getElementById('admin-panel');
+            const adminActions = document.querySelectorAll('.admin-actions');
+
+            if (currentUser) {
+                userDisplay.innerText = `👤 ${currentUser.name}`;
+                userDisplay.style.display = 'inline';
+                authBtn.innerText = 'خروج';
+                authBtn.onclick = logout;
+
+                if (currentUser.isAdmin) {
+                    adminPanel.style.display = 'block';
+                    adminActions.forEach(action => action.style.display = 'flex');
+                } else {
+                    adminPanel.style.display = 'none';
+                    adminActions.forEach(action => action.style.display = 'none');
+                }
+            } else {
+                userDisplay.style.display = 'none';
+                authBtn.innerText = 'ورود / ثبت‌نام';
+                authBtn.onclick = openModal;
+                adminPanel.style.display = 'none';
+                adminActions.forEach(action => action.style.display = 'none');
+            }
+        }
+
+        function toggleFormType() {
+            const type = document.getElementById('post-type').value;
+            const fileGroup = document.getElementById('file-upload-group');
+            const titleLabel = document.getElementById('title-label');
+
+            if (type === 'game') {
+                fileGroup.style.display = 'block';
+                titleLabel.innerText = 'عنوان بازی:';
+            } else {
+                fileGroup.style.display = 'none';
+                titleLabel.innerText = 'عنوان خبر:';
+            }
+        }
+
+        function submitPost() {
+            const type = document.getElementById('post-type').value;
+            const title = document.getElementById('post-title').value.trim();
+            const content = document.getElementById('post-content').value.trim();
+            const fileInput = document.getElementById('game-file');
+
+            if (!title || !content) {
+                alert('لطفاً عنوان و توضیحات را وارد کنید.');
+                return;
+            }
+
+            if (editingCard) {
+                editingCard.remove();
+                editingCard = null;
+                document.getElementById('btn-submit').innerText = 'انتشار در سایت';
+                document.getElementById('panel-title').innerText = '⚙️ پنل مدیریت پرهام';
+            }
+
+            const cardId = 'card-' + Date.now();
+            let cardHTML = '';
+
+            if (type === 'game') {
+                let fileLinkHTML = '';
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const fileUrl = URL.createObjectURL(file);
+                    fileLinkHTML = `<br><a href="${fileUrl}" download="${file.name}" class="btn-auth" style="display:inline-block; text-decoration:none; margin-top: 0.5rem;">📥 دانلود ${file.name}</a>`;
+                }
+
+                cardHTML = `
+                    <div class="card" id="${cardId}" data-type="game" data-ratings="[]">
+                        <div>
+                            <div class="card-header">
+                                <h3>🎮 ${title}</h3>
+                                <div class="admin-actions" style="display: ${currentUser && currentUser.isAdmin ? 'flex' : 'none'};">
+                                    <button class="action-btn" onclick="editPost(this)" title="ویرایش">✏️</button>
+                                    <button class="action-btn" onclick="deletePost(this)" title="حذف">🗑️</button>
+                                </div>
+                            </div>
+                            <p class="card-desc" style="margin-top: 0.5rem;">${content}</p>
+                            ${fileLinkHTML}
+                            <div class="rating-display" id="rating-${cardId}">امتیاز: 🌟 ۰/۵ (۰ نظر)</div>
+                        </div>
+
+                        <div class="comments-section">
+                            <div class="comments-title">💬 نظرات و امتیاز کاربران</div>
+                            <div class="comments-list" id="comments-${cardId}"></div>
+                            
+                            <div class="comment-form">
+                                <div class="star-rating" id="stars-${cardId}">
+                                    <span onclick="setRating('${cardId}', 1)">★</span>
+                                    <span onclick="setRating('${cardId}', 2)">★</span>
+                                    <span onclick="setRating('${cardId}', 3)">★</span>
+                                    <span onclick="setRating('${cardId}', 4)">★</span>
+                                    <span onclick="setRating('${cardId}', 5)">★</span>
+                                </div>
+                                <input type="text" id="author-${cardId}" placeholder="نام شما...">
+                                <textarea id="text-${cardId}" rows="2" placeholder="نظر خود را بنویسید..."></textarea>
+                                <button class="btn-comment" onclick="addComment('${cardId}')">ثبت نظر و امتیاز</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                cardHTML = `
+                    <div class="card" id="${cardId}" data-type="news">
+                        <div>
+                            <div class="card-header">
+                                <h3>📢 ${title}</h3>
+                                <div class="admin-actions" style="display: ${currentUser && currentUser.isAdmin ? 'flex' : 'none'};">
+                                    <button class="action-btn" onclick="editPost(this)" title="ویرایش">✏️</button>
+                                    <button class="action-btn" onclick="deletePost(this)" title="حذف">🗑️</button>
+                                </div>
+                            </div>
+                            <p class="card-desc" style="margin-top: 0.5rem;">${content}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const container = type === 'game' ? document.getElementById('games-list') : document.getElementById('news-list');
+            if (container.querySelector('.empty-msg')) container.innerHTML = '';
+            container.innerHTML += cardHTML;
+
+            document.getElementById('post-title').value = '';
+            document.getElementById('post-content').value = '';
+            document.getElementById('game-file').value = '';
+            alert('با موفقیت انجام شد!');
+            checkEmptyLists();
+        }
+
+        let selectedRatings = {};
+        function setRating(cardId, rating) {
+            selectedRatings[cardId] = rating;
+            const stars = document.querySelectorAll(`#stars-${cardId} span`);
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        function addComment(cardId) {
+            const author = document.getElementById(`author-${cardId}`).value.trim() || (currentUser ? currentUser.name : 'کاربر ناشناس');
+            const text = document.getElementById(`text-${cardId}`).value.trim();
+            const rating = selectedRatings[cardId] || 5;
+
+            if (!text) {
+                alert('لطفاً متن نظر را وارد کنید.');
+                return;
+            }
+
+            const commentsList = document.getElementById(`comments-${cardId}`);
+            commentsList.innerHTML += `
+                <div class="comment-item">
+                    <div class="comment-user">
+                        <span>👤 ${author}</span>
+                        <span style="color: var(--star-color);">★ ${rating}/5</span>
+                    </div>
+                    <div>${text}</div>
+                </div>
+            `;
+
+            const card = document.getElementById(cardId);
+            let ratings = JSON.parse(card.getAttribute('data-ratings'));
+            ratings.push(rating);
+            card.setAttribute('data-ratings', JSON.stringify(ratings));
+
+            const avg = (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
+            document.getElementById(`rating-${cardId}`).innerText = `امتیاز: 🌟 ${avg}/۵ (${ratings.length} نظر)`;
+
+            document.getElementById(`text-${cardId}`).value = '';
+            document.getElementById(`author-${cardId}`).value = '';
+            delete selectedRatings[cardId];
+            const stars = document.querySelectorAll(`#stars-${cardId} span`);
+            stars.forEach(star => star.classList.remove('active'));
+        }
+
+        function deletePost(btn) {
+            if (confirm('آیا از حذف این پست مطمئن هستید؟')) {
+                const card = btn.closest('.card');
+                card.remove();
+                checkEmptyLists();
+            }
+        }
+
+        function editPost(btn) {
+            const card = btn.closest('.card');
+            editingCard = card;
+
+            const type = card.getAttribute('data-type');
+            const title = card.querySelector('h3').innerText.replace('🎮 ', '').replace('📢 ', '');
+            const content = card.querySelector('.card-desc').innerText;
+
+            document.getElementById('post-type').value = type;
+            toggleFormType();
+
+            document.getElementById('post-title').value = title;
+            document.getElementById('post-content').value = content;
+
+            document.getElementById('btn-submit').innerText = 'ذخیره تغییرات';
+            document.getElementById('panel-title').innerText = '✏️ ویرایش پست';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function checkEmptyLists() {
+            const gamesList = document.getElementById('games-list');
+            const newsList = document.getElementById('news-list');
+
+            if (gamesList.querySelectorAll('.card').length === 0) {
+                gamesList.innerHTML = '<p class="empty-msg">هنوز بازی جدیدی آپلود نشده است.</p>';
+            }
+            if (newsList.querySelectorAll('.card').length === 0) {
+                newsList.innerHTML = '<p class="empty-msg">هنوز خبری منتشر نشده است.</p>';
+            }
+        }
+    </script>
+</body>
+</html>
