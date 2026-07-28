@@ -75,18 +75,6 @@
 
         .emoji-picker-container { display: flex; gap: 10px; align-items: center; }
 
-        /* نوار پیشرفت آبی آسمونی پرسرعت */
-        .progress-container {
-            width: 100%; background: #0f172a; border-radius: 8px;
-            overflow: hidden; margin-bottom: 1.2rem; display: none;
-            border: 1px solid #334155;
-        }
-        .progress-bar {
-            width: 0%; height: 22px; background: linear-gradient(90deg, #00bfff, #00ffcc);
-            text-align: center; color: #000; font-weight: bold; font-size: 0.85rem;
-            transition: width 0.1s ease; line-height: 22px;
-        }
-
         .btn-submit {
             background: var(--accent-color); color: #000; border: none; padding: 0.8rem 1.5rem;
             border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;
@@ -130,7 +118,7 @@
             <div class="form-group">
                 <label>نوع ارسال:</label>
                 <select id="post-type" onchange="toggleExtraFields()">
-                    <option value="game">🎮 آپلود مستقیم بازی</option>
+                    <option value="game">🎮 انتشار بازی جدید</option>
                     <option value="news">📢 انتشار خبر جدید</option>
                 </select>
             </div>
@@ -154,12 +142,8 @@
             </div>
 
             <div class="form-group" id="file-group">
-                <label>انتخاب فایل بازی (آپلود مستقیم در گیت‌هاب):</label>
-                <input type="file" id="post-file" style="padding: 0.5rem; background: #0f172a; color: #fff;">
-            </div>
-
-            <div class="progress-container" id="progress-container">
-                <div class="progress-bar" id="progress-bar">0%</div>
+                <label>لینک دانلود مستقیم بازی:</label>
+                <input type="text" id="post-fileurl" placeholder="https://... یا لینک گیت‌هاب/تلگرام">
             </div>
 
             <button class="btn-submit" id="btn-submit" onclick="savePostToGitHub()">ذخیره و انتشار در گیت‌هاب</button>
@@ -197,7 +181,6 @@
         let siteData = { games: [], news: [] };
         let fileSHA = "";
         let editingId = null;
-        let currentFileUrl = "";
 
         const ADMIN_PASS_HASH = "8b34005dc9b049a4645ef20a8fa4ec6fb7efedaeeb8f1ef92c732a39d25700ca";
 
@@ -291,95 +274,14 @@
             });
         }
 
-        function uploadFileWithProgress(file) {
-            return new Promise((resolve, reject) => {
-                let token = localStorage.getItem('gh_token');
-                const cleanFileName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-                const fileName = `uploads/${Date.now()}_${cleanFileName}`;
-                const reader = new FileReader();
-
-                const container = document.getElementById('progress-container');
-                const bar = document.getElementById('progress-bar');
-                container.style.display = 'block';
-                bar.style.width = '0%';
-                bar.innerText = '0%';
-
-                reader.onprogress = (e) => {
-                    if (e.lengthComputable) {
-                        let percent = Math.round((e.loaded / e.total) * 40);
-                        bar.style.width = percent + '%';
-                        bar.innerText = percent + '% (آماده‌سازی فایل...)';
-                    }
-                };
-
-                reader.onload = async function() {
-                    const base64Content = reader.result.split(',')[1];
-                    bar.style.width = '50%';
-                    bar.innerText = '50% (ارسال مستقیم به گیت‌هاب...)';
-
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('PUT', `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${fileName}`, true);
-                    xhr.setRequestHeader('Authorization', `token ${token}`);
-                    xhr.setRequestHeader('Content-Type', 'application/json');
-
-                    xhr.upload.onprogress = function(e) {
-                        if (e.lengthComputable) {
-                            let percent = 50 + Math.round((e.loaded / e.total) * 50);
-                            bar.style.width = percent + '%';
-                            bar.innerText = percent + '% (در حال آپلود...)';
-                        }
-                    };
-
-                    xhr.onload = function() {
-                        if (xhr.status === 201 || xhr.status === 200) {
-                            const resData = JSON.parse(xhr.responseText);
-                            bar.style.width = '100%';
-                            bar.innerText = 'آپلود با موفقیت انجام شد!';
-                            setTimeout(() => { container.style.display = 'none'; }, 1000);
-                            resolve(resData.content.download_url);
-                        } else {
-                            container.style.display = 'none';
-                            try {
-                                const errObj = JSON.parse(xhr.responseText);
-                                reject(errObj.message || "خطا از سمت گیت‌هاب");
-                            } catch(e) {
-                                reject("خطا در پاسخ سرور گیت‌هاب");
-                            }
-                        }
-                    };
-
-                    xhr.onerror = function() {
-                        container.style.display = 'none';
-                        reject("خطای شبکه؛ اینترنت خود را بررسی کنید");
-                    };
-
-                    xhr.send(JSON.stringify({
-                        message: "آپلود مستقیم فایل بازی",
-                        content: base64Content
-                    }));
-                };
-
-                reader.readAsDataURL(file);
-            });
-        }
-
         async function savePostToGitHub() {
             const type = document.getElementById('post-type').value;
             const emoji = document.getElementById('post-emoji').value.trim() || (type === 'game' ? '🎮' : '📢');
             const title = document.getElementById('post-title').value.trim();
             const content = document.getElementById('post-content').value.trim();
-            const fileInput = document.getElementById('post-file');
+            const fileUrl = document.getElementById('post-fileurl').value.trim();
 
             if (!title || !content) return alert('لطفاً عنوان و توضیحات را وارد کنید.');
-
-            let fileUrl = currentFileUrl;
-            if (type === 'game' && fileInput.files.length > 0) {
-                try {
-                    fileUrl = await uploadFileWithProgress(fileInput.files[0]);
-                } catch (e) {
-                    return alert('خطا در آپلود: ' + e + '\n(نکته: حجم فایل نباید خیلی بالا باشد)');
-                }
-            }
 
             const list = type === 'game' ? siteData.games : siteData.news;
 
@@ -392,7 +294,6 @@
                     if (type === 'game') item.fileUrl = fileUrl;
                 }
                 editingId = null;
-                currentFileUrl = "";
                 document.getElementById('btn-submit').innerText = 'ذخیره و انتشار در گیت‌هاب';
             } else {
                 const newItem = { id: 'id-' + Date.now(), emoji, title, content };
@@ -425,7 +326,9 @@
             document.getElementById('post-emoji').value = item.emoji || '🎮';
             document.getElementById('post-title').value = item.title;
             document.getElementById('post-content').value = item.content;
-            currentFileUrl = item.fileUrl || '';
+            if (type === 'game') {
+                document.getElementById('post-fileurl').value = item.fileUrl || '';
+            }
             document.getElementById('btn-submit').innerText = 'ذخیره تغییرات در گیت‌هاب';
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -468,7 +371,8 @@
                     alert('تغییر اعمال و ذخیره شد');
                     document.getElementById('post-title').value = '';
                     document.getElementById('post-content').value = '';
-                    document.getElementById('post-file').value = '';
+                    const fileInput = document.getElementById('post-fileurl');
+                    if(fileInput) fileInput.value = '';
                 } else {
                     alert('خطا در همگام‌سازی با گیت‌هاب. لطفاً توکن خود را بررسی کنید.');
                     localStorage.removeItem('gh_token');
