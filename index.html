@@ -15,117 +15,134 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; padding-bottom: 60px; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; padding-bottom: 60px; overflow-x: hidden; }
 
         header {
-            background: rgba(21, 28, 44, 0.8); backdrop-filter: blur(12px);
-            position: sticky; top: 0; z-index: 100; padding: 1.2rem 5%;
+            background: rgba(21, 28, 44, 0.9); backdrop-filter: blur(12px);
+            position: sticky; top: 0; z-index: 100; padding: 1rem 5%;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .logo { font-size: 1.6rem; font-weight: 900; color: var(--accent-color); text-shadow: 0 0 10px var(--accent-glow); }
-        .user-nav { display: flex; align-items: center; gap: 15px; }
+        .logo { font-size: 1.4rem; font-weight: 900; color: var(--accent-color); text-shadow: 0 0 10px var(--accent-glow); }
+        .user-nav { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
         .btn-auth {
             background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color);
-            padding: 0.5rem 1.2rem; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;
+            padding: 0.4rem 1rem; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;
+            font-size: 0.9rem;
         }
         .btn-auth:hover { background: var(--accent-color); color: #000; box-shadow: 0 0 15px var(--accent-glow); }
 
-        .hero { padding: 4rem 5% 2rem; text-align: center; max-width: 800px; margin: 0 auto; }
+        .hero { padding: 3rem 5% 1.5rem; text-align: center; max-width: 800px; margin: 0 auto; }
         .hero h1 {
-            font-size: 2.8rem; margin-bottom: 1rem;
+            font-size: 2.2rem; margin-bottom: 1rem;
             background: linear-gradient(45deg, #fff, var(--accent-color));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
+        .hero p { font-size: 0.95rem; color: var(--text-muted); }
 
-        .container { max-width: 1100px; margin: 2rem auto; padding: 0 5%; }
-        .section-title { font-size: 1.8rem; margin: 2rem 0 1rem; color: #fff; border-right: 4px solid var(--accent-color); padding-right: 10px; }
+        .container { max-width: 1100px; margin: 1rem auto; padding: 0 4%; }
+        .section-title { font-size: 1.5rem; margin: 2rem 0 1rem; color: #fff; border-right: 4px solid var(--accent-color); padding-right: 10px; }
 
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
 
         .card {
-            background: var(--card-bg); border-radius: 12px; padding: 1.5rem;
+            background: var(--card-bg); border-radius: 12px; padding: 1.2rem;
             border: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; justify-content: space-between;
-            text-align: center;
+            text-align: center; word-break: break-word;
         }
 
-        .card-emoji { font-size: 3.5rem; margin-bottom: 0.8rem; text-shadow: 0 0 15px rgba(0, 255, 204, 0.3); }
+        .card-emoji { font-size: 3rem; margin-bottom: 0.6rem; text-shadow: 0 0 15px rgba(0, 255, 204, 0.3); }
 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-        .card h3 { color: var(--accent-color); }
-        .card p { text-align: right; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 10px; }
+        .card h3 { color: var(--accent-color); font-size: 1.2rem; text-align: right; flex: 1; }
+        .card p { text-align: right; font-size: 0.9rem; color: var(--text-muted); }
 
         .rating-badge {
             background: rgba(255, 215, 0, 0.1); border: 1px solid #ffd700; color: #ffd700;
-            padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.85rem; font-weight: bold;
+            padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.8rem; font-weight: bold;
             display: inline-block; margin-bottom: 0.8rem;
         }
 
         .comments-section {
-            margin-top: 1.2rem; border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 1rem; text-align: right;
+            margin-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 0.8rem; text-align: right;
         }
 
         .comments-list {
-            max-height: 120px; overflow-y: auto; margin-bottom: 0.8rem; font-size: 0.9rem;
+            max-height: 110px; overflow-y: auto; margin-bottom: 0.8rem; font-size: 0.85rem;
             background: #0f172a; border-radius: 8px; padding: 0.5rem; border: 1px solid #334155;
         }
 
         .comment-item {
             padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; justify-content: space-between; align-items: center; gap: 5px;
         }
         .comment-item:last-child { border-bottom: none; }
-        .comment-text { color: var(--text-muted); }
-        .comment-author { color: var(--accent-color); font-weight: bold; margin-left: 5px; }
+        .comment-text { color: var(--text-muted); word-break: break-all; }
+        .comment-author { color: var(--accent-color); font-weight: bold; margin-left: 4px; }
 
         .comment-input-box { display: flex; flex-direction: column; gap: 6px; }
         .comment-input-box input, .comment-input-box select {
-            padding: 0.4rem; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 0.85rem;
+            padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 0.85rem; width: 100%;
         }
         .comment-btn {
-            background: var(--accent-color); color: #000; border: none; padding: 0.4rem;
-            border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem;
+            background: var(--accent-color); color: #000; border: none; padding: 0.5rem;
+            border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.85rem; width: 100%;
         }
 
-        .admin-actions { display: none; gap: 8px; }
-        .action-btn { background: transparent; border: none; cursor: pointer; font-size: 1.1rem; transition: transform 0.2s; }
+        .admin-actions { display: none; gap: 6px; }
+        .action-btn { background: transparent; border: none; cursor: pointer; font-size: 1rem; transition: transform 0.2s; }
         .action-btn:hover { transform: scale(1.2); }
 
         #admin-panel {
             display: none; background: rgba(0, 255, 204, 0.05);
-            border: 1px solid var(--accent-color); border-radius: 16px; padding: 2rem; margin-bottom: 3rem;
+            border: 1px solid var(--accent-color); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;
         }
 
-        .form-group { margin-bottom: 1.2rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); text-align: right; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.4rem; color: var(--text-muted); text-align: right; font-size: 0.9rem; }
         .form-group input, .form-group textarea, .form-group select {
-            width: 100%; padding: 0.8rem; background: #0f172a; border: 1px solid #334155;
-            color: #fff; border-radius: 8px; outline: none; text-align: right;
+            width: 100%; padding: 0.7rem; background: #0f172a; border: 1px solid #334155;
+            color: #fff; border-radius: 8px; outline: none; text-align: right; font-size: 0.9rem;
         }
 
-        .emoji-picker-container { display: flex; gap: 10px; align-items: center; }
+        .emoji-picker-container { display: flex; gap: 8px; align-items: center; }
 
         .btn-submit {
             background: var(--accent-color); color: #000; border: none; padding: 0.8rem 1.5rem;
-            border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%;
+            border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 0.95rem;
         }
 
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); z-index: 1000;
-            justify-content: center; align-items: center;
+            justify-content: center; align-items: center; padding: 15px;
         }
 
         .modal-content {
-            background: var(--card-bg); padding: 2.5rem; border-radius: 16px;
-            width: 100%; max-width: 400px; border: 1px solid var(--accent-color); position: relative;
+            background: var(--card-bg); padding: 2rem 1.5rem; border-radius: 16px;
+            width: 100%; max-width: 380px; border: 1px solid var(--accent-color); position: relative;
         }
 
-        .close-btn { position: absolute; top: 15px; left: 15px; color: var(--text-muted); cursor: pointer; font-size: 1.5rem; }
-        .empty-msg { color: var(--text-muted); font-style: italic; text-align: center; width: 100%; }
+        .close-btn { position: absolute; top: 12px; left: 12px; color: var(--text-muted); cursor: pointer; font-size: 1.4rem; }
+        .empty-msg { color: var(--text-muted); font-style: italic; text-align: center; width: 100%; font-size: 0.9rem; }
+
+        /* بهینه‌سازی‌های اختصاصی برای موبایل (Responsive Fixes) */
+        @media (max-width: 600px) {
+            header { padding: 0.8rem 4%; }
+            .logo { font-size: 1.2rem; }
+            .hero { padding: 2rem 4% 1rem; }
+            .hero h1 { font-size: 1.8rem; }
+            .hero p { font-size: 0.85rem; }
+            .container { padding: 0 3%; }
+            .section-title { font-size: 1.3rem; }
+            .grid-container { grid-template-columns: 1fr; }
+            .modal-content { padding: 1.5rem 1rem; }
+            .comment-input-box > div { flex-direction: column; gap: 6px; }
+            .comment-input-box select, .comment-input-box input { width: 100% !important; }
+        }
     </style>
 </head>
 <body>
@@ -133,7 +150,7 @@
     <header>
         <div class="logo">🎮 AP-DEV</div>
         <div class="user-nav">
-            <span id="user-display" style="display: none; color: var(--accent-color); font-weight: bold;"></span>
+            <span id="user-display" style="display: none; color: var(--accent-color); font-weight: bold; font-size: 0.85rem;"></span>
             <button class="btn-auth" id="auth-btn" onclick="openModal()">ورود / ثبت‌نام</button>
         </div>
     </header>
@@ -146,7 +163,7 @@
     <div class="container">
 
         <div id="admin-panel">
-            <h2 id="panel-title" style="color: var(--accent-color); margin-bottom: 1.5rem; text-align: right;">⚙️ پنل مدیریت پرهام</h2>
+            <h2 id="panel-title" style="color: var(--accent-color); margin-bottom: 1.2rem; text-align: right; font-size: 1.3rem;">⚙️ پنل مدیریت پرهام</h2>
             
             <div class="form-group">
                 <label>نوع ارسال:</label>
@@ -159,8 +176,8 @@
             <div class="form-group">
                 <label>ایموجی کارت (تصویر بزرگ بالا):</label>
                 <div class="emoji-picker-container">
-                    <input type="text" id="post-emoji" value="🎮" style="font-size: 1.5rem; text-align: center; width: 80px;" maxlength="2">
-                    <span style="font-size: 0.9rem; color: var(--text-muted);">مثل: 🎮، 🚀، ⚡، 💎</span>
+                    <input type="text" id="post-emoji" value="🎮" style="font-size: 1.3rem; text-align: center; width: 70px;" maxlength="2">
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">مثل: 🎮، 🚀، ⚡، 💎</span>
                 </div>
             </div>
 
@@ -193,7 +210,7 @@
     <div class="modal" id="auth-modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h3 style="margin-bottom: 1rem; color: var(--accent-color); text-align: right;">ورود به حساب</h3>
+            <h3 style="margin-bottom: 1rem; color: var(--accent-color); text-align: right; font-size: 1.2rem;">ورود به حساب</h3>
             <div class="form-group">
                 <label>نام کاربری:</label>
                 <input type="text" id="username" placeholder="Username">
@@ -270,26 +287,24 @@
             siteData.games.forEach(game => {
                 const emoji = game.emoji || '🎮';
                 
-                // محاسبه میانگین امتیاز
                 let avgRating = 0;
                 if (game.ratings && game.ratings.length > 0) {
                     const sum = game.ratings.reduce((a, b) => a + b, 0);
                     avgRating = (sum / game.ratings.length).toFixed(1);
                 }
 
-                // رندر نظرات
                 let commentsHtml = '';
                 if (game.comments && game.comments.length > 0) {
                     game.comments.forEach((c, cIndex) => {
                         commentsHtml += `
                             <div class="comment-item">
                                 <span class="comment-text"><strong class="comment-author">${c.author}:</strong> ${c.text}</span>
-                                ${currentUser && currentUser.isAdmin ? `<button class="action-btn" style="font-size:0.8rem;" onclick="deleteComment('${game.id}', ${cIndex})" title="حذف نظر">❌</button>` : ''}
+                                ${currentUser && currentUser.isAdmin ? `<button class="action-btn" style="font-size:0.75rem;" onclick="deleteComment('${game.id}', ${cIndex})" title="حذف نظر">❌</button>` : ''}
                             </div>
                         `;
                     });
                 } else {
-                    commentsHtml = '<p style="color:var(--text-muted); font-size:0.8rem; text-align:center;">هنوز نظری ثبت نشده است.</p>';
+                    commentsHtml = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">هنوز نظری ثبت نشده است.</p>';
                 }
 
                 gamesList.innerHTML += `
@@ -308,20 +323,20 @@
                         </div>
                         
                         <div>
-                            ${game.fileUrl ? `<a href="${game.fileUrl}" target="_blank" class="btn-auth" style="display:block; margin-top:1rem; text-decoration:none;">📥 دانلود بازی</a>` : ''}
+                            ${game.fileUrl ? `<a href="${game.fileUrl}" target="_blank" class="btn-auth" style="display:block; margin-top:1rem; text-decoration:none; text-align:center;">📥 دانلود بازی</a>` : ''}
                             
                             <div class="comments-section">
                                 <div class="comments-list">${commentsHtml}</div>
                                 <div class="comment-input-box">
                                     <div style="display: flex; gap: 5px;">
-                                        <select id="rating-${game.id}" style="width: 45%;">
+                                        <select id="rating-${game.id}">
                                             <option value="5">⭐⭐⭐⭐⭐ (5)</option>
                                             <option value="4">⭐⭐⭐⭐ (4)</option>
                                             <option value="3">⭐⭐⭐ (3)</option>
                                             <option value="2">⭐⭐ (2)</option>
                                             <option value="1">⭐ (1)</option>
                                         </select>
-                                        <input type="text" id="comment-text-${game.id}" placeholder="نظر خود را بنویسید..." style="width: 55%;">
+                                        <input type="text" id="comment-text-${game.id}" placeholder="نظر خود را بنویسید...">
                                     </div>
                                     <button class="comment-btn" onclick="addCommentAndRating('${game.id}')">ارسال نظر و امتیاز</button>
                                 </div>
@@ -510,6 +525,8 @@
             closeModal();
             renderCards();
         }
+
+        updateUI();
 
         function updateUI() {
             const userDisplay = document.getElementById('user-display');
